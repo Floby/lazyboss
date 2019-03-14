@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A Job Scheduler which delegates to faceless workers",
   "main": "index.js",
+  "bin": {
+    "lazyboss": "./bin/lazyboss"
+  },
   "scripts": {
     "test": "nyc mocha test"
   },
