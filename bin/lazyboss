@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-const { createServer } = require('../')
+const { createServer, createContainer } = require('../')
 const config = require('../config')
+const { usecases } = createContainer(config)
 
 async function run () {
-  const server = await createServer(config)
+  const server = await createServer(config, usecases)
   await server.start()
 }
 
