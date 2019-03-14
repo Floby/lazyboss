@@ -1,6 +1,6 @@
 {
   "name": "lazyboss",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A Job Scheduler which delegates to faceless workers",
   "main": "index.js",
   "bin": {
