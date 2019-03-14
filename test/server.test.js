@@ -2,9 +2,10 @@ const supertest = require('supertest')
 const { createServer } = require('../')
 
 describe('The server', () => {
-  const config = new Map()
   const port = 9988
+  const config = new Map()
   config.set('PORT', port)
+
   let server
   beforeEach(async () => {
     server = await createServer(config)
