@@ -33,10 +33,12 @@ Usage
 > POST /jobs
 > Content-Type: application/json
 >
-> { ... }
+> { type, parameters, ... }
 
 < 202 Accepted
 < Location: /jobs/{jobId}
+<
+< { id=jobId, status=pending, type, parameters }
 ```
 
 ### Get job status
@@ -46,7 +48,7 @@ Usage
 
 < 200 OK
 <
-< { id, status, parameters, result, error }
+< { id, type, status, parameters, result, error }
 ```
 
 ### Follow a job status
@@ -67,13 +69,14 @@ Usage
 ### Ask for a job to do
 
 ```
-> GET /jobs/attempt
-> Authorization: Credentials<worker.id>
+> POST /jobs/attempt
+> Authorization: Credentials<worker>
  
-< 200 OK
+< 201 Created
 < Content-Type: application/json
+< Location: /jobs/{jobId}/attempts/{attemptId}
 <
-< { id, status=todo, parameters, assignee: worker.id, attempt: attemptId }
+< { id, status=processing, startedAt, parameters, assignee: worker.id, attempt: attemptId }
 ```
 
 ### Complete a job
