@@ -1,13 +1,24 @@
+const clone = require('clone-deep')
 const uuid = require('uuid/v4')
 const { expect, describeWithApi, sinon } = require('./utils')
 const { UnknownJobError } = require('../src/domain/errors')
 
 describeWithApi((api, usecases) => {
   describe('POST /jobs', () => {
-    const payload = {}
-    const expectedCreationCommand = {}
+    const expectedCreationCommand = {
+      type: 'some-processing',
+      parameters: {
+        some: 'data'
+      }
+    }
+    const payload = clone(expectedCreationCommand)
+    const expectedUuid = uuid()
+    const expectedJob = { id: expectedUuid }
     beforeEach(() => {
       usecases.createJob = sinon.stub().resolves()
+    })
+    beforeEach(() => {
+      usecases.createJob.resolves(expectedJob)
     })
     it('calls usecase createJob(jobCreationCommand)', async () => {
       // When
@@ -22,11 +33,23 @@ describeWithApi((api, usecases) => {
     })
     it('replies a location header to get the created job', async () => {
       // Given
-      const expectedUuid = uuid()
-      usecases.createJob.resolves(expectedUuid)
       // When
       await api().post('/jobs').send(payload)
         .expect('Location', `/jobs/${expectedUuid}`)
+    })
+    context('when payload is missing field type', () => {
+      const payload = { parameters: { some: 'data' } }
+      it('replies 400', async () => {
+        await api().post('/jobs').send(payload)
+          .expect(400)
+        })
+    })
+    context('when payload has invalid field type', () => {
+      const payload = { type: 'hello world!' }
+      it('replies 400', async () => {
+        await api().post('/jobs').send(payload)
+          .expect(400)
+        })
     })
   })
 

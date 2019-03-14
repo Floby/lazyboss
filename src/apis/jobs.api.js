@@ -8,11 +8,30 @@ function routes (usecases) {
   return [{
     method: 'POST',
     path: '/jobs',
+    options: {
+      validate: {
+        payload: {
+          type: Joi
+            .string()
+            .hostname()
+            .required()
+            .description('The type of job to create'),
+          parameters: Joi
+            .object()
+            .optional()
+            .description('The parameters of the job')
+            .default({})
+        },
+        options: {
+          stripUnknown: true
+        }
+      }
+    },
     handler: async (request, h) => {
-      const jobId = await usecases.createJob({})
+      const job = await usecases.createJob(request.payload)
       return h.response()
         .code(202)
-        .location(`/jobs/${jobId}`)
+        .location(`/jobs/${job.id}`)
     }
   }, {
     method: 'GET',

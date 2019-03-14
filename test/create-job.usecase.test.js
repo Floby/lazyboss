@@ -10,23 +10,30 @@ describe('CreateJob(JobsRepository)', () => {
     createJob = CreateJob(jobsRepositoryStub)
   })
   describe('(jobCreationCommand)', () => {
-    const jobCreationCommand = {}
+    const jobCreationCommand = {
+      type: 'process-stuff',
+      parameters: {
+        some: 'data'
+      }
+    }
     it('calls jobsRepository.save(job) with a generated id', async () => {
       // Given
       const expectedJob = {
-        id: matchUuid()
+        id: matchUuid(),
+        type: jobCreationCommand.type,
+        parameters: jobCreationCommand.parameters
       }
       // When
       await createJob(jobCreationCommand)
       // Then
       expect(jobsRepositoryStub.save).to.have.been.calledWith(expectedJob)
     })
-    it('resolves with the id of the created job', async () => {
+    it('resolves with the created job', async () => {
       // When
       const actual = await createJob(jobCreationCommand)
       // Then
-      const generatedUuid = jobsRepositoryStub.save.firstCall.args[0].id
-      expect(actual).to.deep.equal(generatedUuid)
+      const createdJob = jobsRepositoryStub.save.firstCall.args[0]
+      expect(actual).to.deep.equal(createdJob)
     })
   })
 })
