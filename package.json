@@ -1,0 +1,30 @@
+{
+  "name": "lazyboss",
+  "version": "1.0.0",
+  "description": "A Job Scheduler which delegates to faceless workers",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Floby/lazyboss.git"
+  },
+  "keywords": [
+    "job",
+    "queue",
+    "scheduler",
+    "workers",
+    "worker",
+    "runner",
+    "jobs",
+    "job",
+    "queue"
+  ],
+  "author": "Florent Jaby <florent.jaby@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Floby/lazyboss/issues"
+  },
+  "homepage": "https://github.com/Floby/lazyboss#readme"
+}
