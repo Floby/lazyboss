@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+const { createServer } = require('../')
+const config = require('../config')
+
+async function run () {
+  const server = await createServer(config)
+  await server.start()
+}
+
+run().catch((error) => {
+  console.error(error.stack)
+  process.exit(1)
+})
