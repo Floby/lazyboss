@@ -1,3 +1,4 @@
+const shortid = require('shortid')
 const supertest = require('supertest')
 const { createServer } = require('../')
 require('chai').use(require('sinon-chai'))
@@ -31,5 +32,26 @@ exports.describeWithApi = function (suite, describeFn = mocha.describe) {
       return supertest(`http://localhost:${port}`)
     }
     suite(api, usecases)
+  })
+}
+
+
+exports.fail = function fails () {
+  throw Error ('FAILURE')
+}
+
+exports.matchUuid = function matchUuid() {
+  return sinon.match(exports.matchUuid.regex)
+}
+exports.matchUuid.regex = /^[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12}$/i
+
+exports.matchShortId = function matchShortId() {
+  return sinon.match(exports.matchShortId.regex)
+}
+exports.matchShortId.regex = /^[a-zA-Z0-9_-]{7,14}$/
+
+exports.matchJSON = (expected) => {
+  return sinon.match((actual) => {
+    expect(actual.toJSON()).to.deep.equal(expected)
   })
 }

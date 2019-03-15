@@ -7,8 +7,14 @@
     "lazyboss": "./bin/lazyboss"
   },
   "scripts": {
-    "test": "nyc mocha test",
+    "test": "nyc mocha test --recursive",
     "start": "./bin/lazyboss"
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text-summary"
+    ]
   },
   "repository": {
     "type": "git",
@@ -34,6 +40,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "coveralls": "^3.0.3",
+    "delay": "^4.1.0",
     "mocha": "^6.0.2",
     "nyc": "^13.3.0",
     "sinon": "^7.2.7",
@@ -45,6 +52,7 @@
     "clone-deep": "^4.0.1",
     "envie": "^1.5.0",
     "hapi": "^18.1.0",
-    "joi": "^14.3.1"
+    "joi": "^14.3.1",
+    "shortid": "^2.2.14"
   }
 }

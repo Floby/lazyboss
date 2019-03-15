@@ -4,7 +4,7 @@ const GetJob = require('../src/usecases/get-job.usecase')
 const { UnknownJobError } = require('../src/domain/errors')
 
 describe('GetJob(JobsRepository)', () => {
-  let jobsRepositoryStub
+  let jobsRepositoryStub, getJob
   beforeEach(() => {
     jobsRepositoryStub = {
       get: sinon.stub(), save: sinon.stub()
