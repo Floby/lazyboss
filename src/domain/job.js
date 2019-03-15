@@ -17,4 +17,13 @@ function Job ({ id, status, type, parameters }) {
     status = 'working'
     return new Attempt({ worker, job: this })
   }
+
+  getter(this, 'status', () => status)
+  getter(this, 'id', () => id)
+}
+
+function getter (that, property, get) {
+  Object.defineProperty(that, property, {
+    get
+  })
 }

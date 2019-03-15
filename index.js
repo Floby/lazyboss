@@ -1,5 +1,6 @@
 const Hapi = require('hapi')
 const jobRoutes = require('./src/apis/jobs.api')
+const attemptRoutes = require('./src/apis/attempts.api')
 const Container = require('./src/container')
 
 exports.createServer = createServer
@@ -17,6 +18,7 @@ async function createServer (config, usecases) {
     }
   })
   server.route(jobRoutes(usecases))
+  server.route(attemptRoutes(usecases))
   return server
 }
 

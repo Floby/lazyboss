@@ -90,5 +90,12 @@ describeWithApi((api, usecases) => {
           .expect(404)
       })
     })
+    context('When an unexected error occurs', () => {
+      beforeEach(() => usecases.getJob.rejects(new Error('ouch')))
+      it('replies 500', async () => {
+        await api().get(`/jobs/${jobId}`)
+          .expect(500)
+      })
+    })
   })
 })

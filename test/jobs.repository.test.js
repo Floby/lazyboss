@@ -1,5 +1,7 @@
+const delay = require('delay')
 const uuid = require('uuid/v4')
 const { expect } = require('chai')
+const Job = require('../src/domain/job')
 
 const JobsRepository = require('../src/infra/jobs.repository')
 
@@ -42,6 +44,48 @@ describe('JobsRepository', () => {
           const actual = await jobsRepository.get(uuid())
           expect(actual).to.be.undefined
         })
+      })
+    })
+  })
+
+  describe('.observePending()', () => {
+    context('when no job is added', () => {
+      it('hangs', async function () {
+        // Given
+        let observed = false
+        // When
+        await Promise.race([
+          jobsRepository.observePending().then(() => { observed = true }),
+          delay(200)
+        ])
+        // Then
+        expect(observed).to.equal(false)
+      })
+    })
+    context('when a working job is saved after the start', () => {
+      it('hangs', async () => {
+        // Given
+        let observed = false
+        const job = new Job({ status: 'working' })
+        // When
+        delay(50).then(() => jobsRepository.save(job))
+        await Promise.race([
+          jobsRepository.observePending().then(() => { observed = true }),
+          delay(200)
+        ])
+        // Then
+        expect(observed).to.equal(false)
+      })
+    })
+    context('when a pending job is saved after the start', () => {
+      it('resolves with the pending job', async () => {
+        // Given
+        const job = new Job({ status: 'pending' })
+        // When
+        delay(50).then(() => jobsRepository.save(job))
+        const actual = await jobsRepository.observePending()
+        // Then
+        expect(actual).to.equal(job)
       })
     })
   })

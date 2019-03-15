@@ -1,6 +1,7 @@
 const delay = require('delay')
 const uuid = require('uuid/v4')
 const { NoJobForWorkerError } = require('../domain/errors')
+const Attempt = require('../domain/attempt')
 
 module.exports = AskForAttempt
 
@@ -10,11 +11,10 @@ function AskForAttempt (jobsRepository, attemptsRepository, timeout) {
       jobsRepository.observePending(),
       rejectAfterTimeout(timeout, NoJobForWorkerError, workerCredentials)
     ])
-    const attempt = {
+    const attempt = Attempt({
       worker: workerCredentials,
       job: pendingJob,
-      id: uuid()
-    }
+    })
     await attemptsRepository.save(attempt)
     return attempt
   }
