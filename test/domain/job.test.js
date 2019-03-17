@@ -1,6 +1,7 @@
 const { expect, matchUuid } = require('../utils')
 const Job = require('../../src/domain/job')
 const Attempt = require('../../src/domain/attempt')
+const { JobLifeCycleError } = require('../../src/domain/errors')
 
 describe('DOMAIN', () => {
   describe('new Job({ type, parameters })', () => {
@@ -32,6 +33,7 @@ describe('DOMAIN', () => {
         // When
         job.assign(worker)
         // Then
+        expect(job.assignee).to.equal(worker)
         expect(job.toJSON()).to.have.property('assignee').to.deep.equal(worker)
       })
       it('returns an attempt', () => {
@@ -41,6 +43,42 @@ describe('DOMAIN', () => {
         expect(actual).to.be.an.instanceOf(Attempt)
         expect(actual.worker).to.equal(worker)
         expect(actual.job).to.equal(job)
+      })
+    })
+    describe('.complete(result)', () => {
+      const worker = { id: 'worker' }
+      const result = { my: 'result' }
+      beforeEach(() => {
+        job.assign(worker)
+      })
+      it('changes its status to "done"', () => {
+        // When
+        job.complete(result)
+        // Then
+        expect(job.status).to.equal('done')
+      })
+      it('copies the result', () => {
+        // When
+        job.complete(result)
+        // Then
+        expect(job.result).to.deep.equal(result)
+        expect(job.result).not.to.equal(result)
+      })
+      context('if status was already "done"', () => {
+        beforeEach(() => {
+          job = Job({ status: 'done' })
+        })
+        it('throw a JobLifeCycleError', () => {
+          expect(() => job.complete(result)).to.throw(JobLifeCycleError)
+        })
+      })
+      context('if status was "pending"', () => {
+        beforeEach(() => {
+          job = Job({ status: 'pending' })
+        })
+        it('throw a JobLifeCycleError', () => {
+          expect(() => job.complete(result)).to.throw(JobLifeCycleError)
+        })
       })
     })
   })

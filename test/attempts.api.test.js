@@ -5,13 +5,13 @@ const shortid = require('shortid')
 const Attempt = require('../src/domain/attempt')
 const Job = require('../src/domain/job')
 const { expect, describeWithApi, sinon } = require('./utils')
-const { NoJobForWorkerError } = require('../src/domain/errors')
+const { UnknownAttemptError, WrongWorkerError, NoJobForWorkerError, JobLifeCycleError } = require('../src/domain/errors')
 
 describeWithApi((api, usecases) => {
+  const workerId = 'some-worker-id-' + shortid()
+  const expectedWorkerCredentials = { id: workerId }
+  const plainAuthorizationHeader = `Plain ${querystring.encode(expectedWorkerCredentials)}`
   describe('POST /jobs/attempt', () => {
-    const workerId = 'some-worker-id-' + shortid()
-    const expectedWorkerCredentials = { id: workerId }
-    const plainAuthorizationHeader = `Plain ${querystring.encode(expectedWorkerCredentials)}`
     const expectedId = shortid()
     const pendingJobId = uuid()
     const expectedAttempt = Attempt({
@@ -76,6 +76,70 @@ describeWithApi((api, usecases) => {
           .post('/jobs/attempt')
           .set('Authorization', plainAuthorizationHeader)
           .expect(401)
+      })
+    })
+  })
+  describe('PUT /jobs/{jobId}/attempts/{attemptId}/result', () => {
+    const jobId = uuid()
+    const attemptId = shortid()
+    const result = { some: { processing: 'result' } }
+    beforeEach(() =>{
+      usecases.completeAttempt = sinon.stub().resolves()
+    })
+    it('replies 201', () => {
+      return api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+        .set('Authorization', plainAuthorizationHeader)
+        .send(result)
+        .expect(201)
+    })
+    it('calls usecase completeAttempt()', async () => {
+      await api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+        .set('Authorization', plainAuthorizationHeader)
+        .send(result)
+      expect(usecases.completeAttempt).to.have.been.calledWith(jobId, attemptId, expectedWorkerCredentials, result)
+    })
+    context('with unknown attempt', () => {
+      beforeEach(() => usecases.completeAttempt.rejects(new UnknownAttemptError(attemptId)))
+      it('replies with a 404', async () => {
+        await api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+          .set('Authorization', plainAuthorizationHeader)
+          .send(result)
+          .expect(404)
+      })
+    })
+    context('when usecases rejects with JobLifeCycleError', () => {
+      beforeEach(() => usecases.completeAttempt.rejects(new JobLifeCycleError('', '')))
+      it('replies with a 409', async () => {
+        await api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+          .set('Authorization', plainAuthorizationHeader)
+          .send(result)
+          .expect(409)
+      })
+    })
+    context('when usecases rejects with a general error', () => {
+      beforeEach(() => usecases.completeAttempt.rejects(new Error('hey')))
+      it('replies with a 500', async () => {
+        await api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+          .set('Authorization', plainAuthorizationHeader)
+          .send(result)
+          .expect(500)
+      })
+    })
+    context('When using no credentials for worker', () => {
+      it('replies 401', () => {
+        return api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+          .send(result)
+          .expect(401)
+      })
+    })
+    context('when using credentials for another worker', () => {
+      const otherWorkerCredentials = `Plain id=some-other-worker`
+      beforeEach(() => usecases.completeAttempt.rejects(new WrongWorkerError({ id: 'some-other-worker' }, expectedWorkerCredentials)))
+      it('replies 403', () => {
+        return api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
+          .set('Authorization', otherWorkerCredentials)
+          .send(result)
+          .expect(403)
       })
     })
   })

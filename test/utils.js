@@ -2,6 +2,7 @@ const shortid = require('shortid')
 const supertest = require('supertest')
 const { createServer } = require('../')
 require('chai').use(require('sinon-chai'))
+require('chai').use(require('chai-as-promised'))
 const { expect } = require('chai')
 const sinon = require('sinon')
 const mocha = require('mocha')
@@ -36,8 +37,8 @@ exports.describeWithApi = function (suite, describeFn = mocha.describe) {
 }
 
 
-exports.fail = function fails () {
-  throw Error ('FAILURE')
+exports.fail = function fails (msg='FAILURE') {
+  throw Error (msg)
 }
 
 exports.matchUuid = function matchUuid() {
