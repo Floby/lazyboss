@@ -17,7 +17,7 @@ describeWithApi((api, usecases) => {
     const expectedAttempt = Attempt({
       id: expectedId,
       worker: expectedWorkerCredentials,
-      job: Job({ id: pendingJobId, type: 'some-job' })
+      job: Job({ id: pendingJobId, status: 'assigned', type: 'some-job', assignee: expectedWorkerCredentials })
     })
     beforeEach(() => {
       usecases.askForAttempt = sinon.stub().resolves()
@@ -46,10 +46,12 @@ describeWithApi((api, usecases) => {
         .expect('Location', `/jobs/${pendingJobId}/attempts/${expectedId}`)
     })
     it('replies with attempt as payload', () => {
+      const expectedPayload = expectedAttempt.toJSON()
+      delete expectedPayload.job.assignee
       return api()
         .post('/jobs/attempt')
         .set('Authorization', plainAuthorizationHeader)
-        .expect(expectedAttempt.toJSON())
+        .expect(expectedPayload)
     })
     context('when usecase times out', () => {
       beforeEach(() => usecases.askForAttempt.rejects(new NoJobForWorkerError('')))

@@ -12,7 +12,9 @@ function routes (usecases) {
       try {
         const workerCredentials = getWorkerCredentials(request)
         const attempt = await usecases.askForAttempt(workerCredentials)
-        return h.response(attempt)
+        const body = attempt.toJSON()
+        delete body.job.assignee
+        return h.response(body)
           .code(201)
           .location(`/jobs/${attempt.job.id}/attempts/${attempt.id}`)
       } catch (error) {

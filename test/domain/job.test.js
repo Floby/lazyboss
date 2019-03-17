@@ -22,11 +22,17 @@ describe('DOMAIN', () => {
 
     describe('.assign(worker)', () => {
       const worker = { id: 'hey' }
-      it('changes the status to "working"', () => {
+      it('changes the status to "assigned"', () => {
         // When
         job.assign(worker)
         // Then
-        expect(job.toJSON()).to.have.property('status').to.equal('working')
+        expect(job.toJSON()).to.have.property('status').to.equal('assigned')
+      })
+      it('adds the worker as assignee', () => {
+        // When
+        job.assign(worker)
+        // Then
+        expect(job.toJSON()).to.have.property('assignee').to.deep.equal(worker)
       })
       it('returns an attempt', () => {
         // When
