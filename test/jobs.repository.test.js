@@ -48,6 +48,37 @@ describe('JobsRepository', () => {
     })
   })
 
+  describe('.listPending()', () => {
+    context('when there are no jobs at all', () => {
+      it('resolves []', async () => {
+        const actual = await jobsRepository.listPending()
+        expect(actual).to.be.empty
+      })
+    })
+    context('when there a pending jobs', () => {
+      const firstPendingJob = new Job({})
+      const secondPendingJob = new Job({})
+      beforeEach(() => jobsRepository.save(firstPendingJob))
+      beforeEach(() => jobsRepository.save(secondPendingJob))
+      it('resolves a list of pending jobs', async () => {
+        const actual = await jobsRepository.listPending()
+        expect(actual).to.have.length(2)
+        expect(actual).to.include(firstPendingJob)
+        expect(actual).to.include(secondPendingJob)
+      })
+      context('and also jobs with other statuses', () => {
+        beforeEach(() => jobsRepository.save(Job({ status: 'assigned' })))
+        beforeEach(() => jobsRepository.save(Job({ status: 'working' })))
+        beforeEach(() => jobsRepository.save(Job({ status: 'working' })))
+        it('resolves a list of only pending jobs', async () => {
+          const actual = await jobsRepository.listPending()
+          expect(actual).to.have.length(2)
+          expect(actual).to.include(firstPendingJob)
+          expect(actual).to.include(secondPendingJob)
+        })
+      })
+    })
+  })
   describe('.observePending()', () => {
     context('when no job is added', () => {
       it('hangs', async function () {

@@ -18,6 +18,9 @@ function MemoryJobsRepository () {
     return jobs[jobId]
   }
 
+  this.listPending = async () => {
+    return Object.values(jobs).filter((job) => job.status === 'pending')
+  }
   this.observePending = () => {
     return new Promise((resolve, reject) => {
       events.once('pending', (job) => resolve(job))

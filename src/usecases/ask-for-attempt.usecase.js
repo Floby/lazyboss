@@ -7,15 +7,21 @@ module.exports = AskForAttempt
 
 function AskForAttempt (jobsRepository, attemptsRepository, timeout) {
   return async function (workerCredentials) {
-    const pendingJob = await Promise.race([
-      jobsRepository.observePending(),
-      rejectAfterTimeout(timeout, NoJobForWorkerError, workerCredentials)
+    let jobToAttempt
+    const previsouslyPendingJobs = await jobsRepository.listPending()
+    if (previsouslyPendingJobs.length) {
+      [ jobToAttempt ] = previsouslyPendingJobs
+    } else {
+      jobToAttempt = await Promise.race([
+        jobsRepository.observePending(),
+        rejectAfterTimeout(timeout, NoJobForWorkerError, workerCredentials)
+      ])
+    }
+    const attempt = jobToAttempt.assign(workerCredentials)
+    await Promise.all([
+      attemptsRepository.save(attempt),
+      jobsRepository.save(jobToAttempt)
     ])
-    const attempt = Attempt({
-      worker: workerCredentials,
-      job: pendingJob,
-    })
-    await attemptsRepository.save(attempt)
     return attempt
   }
 }
