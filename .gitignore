@@ -3,3 +3,6 @@ coverage
 *.log
 *.tmp
 .nyc_output
+
+*.un~
+*.sw[a-z]
