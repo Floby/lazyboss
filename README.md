@@ -1,6 +1,6 @@
 [![Build Status][travis-image]][travis-url] [![Coverage][coveralls-image]][coveralls-url]
 
-&x26A0; Work In Progress &x26A0;
+⚠ Work In Progress ⚠
 
 Lazyboss
 ========
