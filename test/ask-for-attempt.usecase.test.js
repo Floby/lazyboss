@@ -5,7 +5,7 @@ const { NoJobForWorkerError } = require('../src/domain/errors')
 const Job = require('../src/domain/job')
 const Attempt = require('../src/domain/attempt')
 
-describe('AskForAttempt(JobsRepository, AttemptsRepository, timeout)', () => {
+describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', () => {
   const timeout = 200
   let askForAttempt, jobsRepositoryStub, attemptsRepositoryStub
   beforeEach(() => {

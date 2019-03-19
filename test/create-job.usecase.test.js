@@ -2,7 +2,7 @@ const Job = require('../src/domain/job')
 const { expect, sinon, matchUuid, matchJSON, fail } = require('./utils')
 const CreateJob = require('../src/usecases/create-job.usecase')
 
-describe('CreateJob(JobsRepository)', () => {
+describe('USECASE CreateJob(JobsRepository)', () => {
   let jobsRepositoryStub, createJob
   beforeEach(() => {
     jobsRepositoryStub = {

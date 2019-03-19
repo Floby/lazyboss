@@ -6,7 +6,7 @@ const Job = require('../src/domain/job')
 const Attempt = require('../src/domain/attempt')
 const CompleteAttempt = require('../src/usecases/complete-attempt.usecase')
 
-describe('CompleteAttempt(jobsRepository, attemptsRepository)', () => {
+describe('USECASE CompleteAttempt(jobsRepository, attemptsRepository)', () => {
   const result = { some: { resulting: 'value' } }
   const worker = { id: 'some-worker' }
   let job, attempt, jobId, attemptId

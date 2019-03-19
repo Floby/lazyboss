@@ -3,7 +3,7 @@ const { expect, sinon } = require('./utils')
 const GetJob = require('../src/usecases/get-job.usecase')
 const { UnknownJobError } = require('../src/domain/errors')
 
-describe('GetJob(JobsRepository)', () => {
+describe('USECASE GetJob(JobsRepository)', () => {
   let jobsRepositoryStub, getJob
   beforeEach(() => {
     jobsRepositoryStub = {

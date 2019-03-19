@@ -5,7 +5,7 @@ const Job = require('../src/domain/job')
 
 const JobsRepository = require('../src/infra/jobs.repository')
 
-describe('JobsRepository', () => {
+describe('REPOSITORY JobsRepository', () => {
   let jobsRepository
   beforeEach(() => {
     jobsRepository = JobsRepository()
