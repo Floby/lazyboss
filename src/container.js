@@ -1,6 +1,7 @@
 const ms = require('ms')
 const JobsRepository = require('./infra/jobs.repository')
 const AttemptsRepository = require('./infra/attempts.repository')
+const VacanciesRespository = require('./infra/vacancies.repository')
 const AskForAttempt = require('./usecases/ask-for-attempt.usecase')
 const CreateJob = require('./usecases/create-job.usecase')
 const GetJob = require('./usecases/get-job.usecase')
@@ -15,9 +16,10 @@ function Container (config) {
 
   repositories.jobsRepository = JobsRepository()
   repositories.attemptsRepository = AttemptsRepository()
+  repositories.vacanciesRepository = VacanciesRespository()
   usecases.getJob = GetJob(repositories.jobsRepository)
   usecases.createJob = CreateJob(repositories.jobsRepository)
-  usecases.askForAttempt = AskForAttempt(repositories.jobsRepository, repositories.attemptsRepository, pollingTimeout)
+  usecases.askForAttempt = AskForAttempt(repositories.jobsRepository, repositories.attemptsRepository, repositories.vacanciesRepository, pollingTimeout)
   usecases.completeAttempt = CompleteAttempt(repositories.jobsRepository, repositories.attemptsRepository)
 
   return { repositories, usecases }

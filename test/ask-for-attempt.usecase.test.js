@@ -4,10 +4,11 @@ const AskForAttempt = require('../src/usecases/ask-for-attempt.usecase')
 const { NoJobForWorkerError } = require('../src/domain/errors')
 const Job = require('../src/domain/job')
 const Attempt = require('../src/domain/attempt')
+const Vacancy = require('../src/domain/vacancy')
 
 describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', () => {
   const timeout = 200
-  let askForAttempt, jobsRepositoryStub, attemptsRepositoryStub
+  let askForAttempt, jobsRepositoryStub, attemptsRepositoryStub, vacanciesRepositoryStub
   beforeEach(() => {
     jobsRepositoryStub = {
       get: sinon.stub(),
@@ -18,7 +19,14 @@ describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', (
     attemptsRepositoryStub = {
       save: sinon.stub()
     }
-    askForAttempt = AskForAttempt(jobsRepositoryStub, attemptsRepositoryStub, timeout)
+    vacanciesRepositoryStub = {
+      save: sinon.stub()
+    }
+    sinon.stub(Vacancy, 'forWorker')
+    askForAttempt = AskForAttempt(jobsRepositoryStub, attemptsRepositoryStub, vacanciesRepositoryStub, timeout)
+  })
+  afterEach(() => {
+    Vacancy.forWorker.restore()
   })
   describe('(workerCredentials)', () => {
     const workerCredentials = { id: 'some-id' }
@@ -32,6 +40,18 @@ describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', (
         paramters: { some: 'data' }
       })
       sinon.spy(job, 'assign')
+    })
+    it('saves a new vacancy for that worker', async () => {
+      // Given
+      const expectedVacancy = { some: 'vacancy' }
+      Vacancy.forWorker.returns(expectedVacancy)
+      // When
+     const actual = await askForAttempt(workerCredentials)
+        .catch((e) => e)
+      // Then
+      expect(actual).to.match(/nothing to do/i)
+      expect(vacanciesRepositoryStub.save).to.have.been.calledOnce
+      expect(vacanciesRepositoryStub.save).to.have.been.calledWith(expectedVacancy)
     })
     context('When at least one job is pending', () => {
       let firstPendingJob, secondPendingJob

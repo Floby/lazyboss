@@ -2,12 +2,15 @@ const delay = require('delay')
 const uuid = require('uuid/v4')
 const { NoJobForWorkerError } = require('../domain/errors')
 const Attempt = require('../domain/attempt')
+const Vacancy = require('../domain/vacancy')
 
 module.exports = AskForAttempt
 
-function AskForAttempt (jobsRepository, attemptsRepository, timeout) {
+function AskForAttempt (jobsRepository, attemptsRepository, vacanciesRepositoryStub, timeout) {
   return async function (workerCredentials) {
     let jobToAttempt
+    const vacancy = Vacancy.forWorker(workerCredentials)
+    await vacanciesRepositoryStub.save(vacancy)
     const previsouslyPendingJobs = await jobsRepository.listPending()
     if (previsouslyPendingJobs.length) {
       [ jobToAttempt ] = previsouslyPendingJobs
