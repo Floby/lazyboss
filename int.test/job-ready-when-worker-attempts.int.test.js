@@ -10,34 +10,34 @@ describe('With one API running', () => {
   })
   afterEach(() => server.stop())
 
-  context('When worker asks to attempt a job', () => {
-    const workerCredentials = {
-      id: 'test-worker'
+  context('When a job is created', () => {
+    const jobSpec = {
+      type: 'test',
+      parameters: { some: 'test' }
     }
-    let attemptRequest, attemptLocationTrap
-    beforeEach('Ask attempt', () => {
-      attemptLocationTrap = headerTrap('Location')
-      attemptRequest = server.api()
+    let jobId, jobLocationTrap
+    beforeEach('Create Job', async () => {
+      jobLocationTrap = headerTrap('Location')
+      const { body } = await server.api()
+        .post('/jobs')
+        .send(jobSpec)
+        .expect(202)
+        .expect(jobLocationTrap)
+      jobId = body.id
+    })
+
+    context('And a worker attempts', () => {
+      const workerCredentials = {
+        id: 'test-worker'
+      }
+      let attemptRequest, attemptLocationTrap
+      beforeEach('Ask attempt', () => {
+        attemptLocationTrap = headerTrap('Location')
+        attemptRequest = server.api()
         .post('/jobs/attempt')
         .set('Authorization', `Plain ${querystring.encode(workerCredentials)}`)
         .expect(201)
         .expect(attemptLocationTrap)
-    })
-
-    context('And a job is created', () => {
-      const jobSpec = {
-        type: 'test',
-        parameters: { some: 'test' }
-      }
-      let jobId, jobLocationTrap
-      beforeEach('Create Job', async () => {
-        jobLocationTrap = headerTrap('Location')
-        const { body } = await server.api()
-          .post('/jobs')
-          .send(jobSpec)
-          .expect(202)
-          .expect(jobLocationTrap)
-        jobId = body.id
       })
 
       it('Attempt can be fulfilled', async () => {
@@ -65,3 +65,4 @@ describe('With one API running', () => {
     })
   })
 })
+
