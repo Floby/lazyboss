@@ -29,7 +29,7 @@ function routes (usecases) {
     },
     handler: async (request, h) => {
       const job = await usecases.createJob(request.payload)
-      return h.response()
+      return h.response(job)
         .code(202)
         .location(`/jobs/${job.id}`)
     }

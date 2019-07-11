@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "nyc mocha test --recursive",
+    "test:int": "nyc mocha int.test --recursive",
     "coveralls": "cat coverage/lcov.info | coveralls",
     "start": "./bin/lazyboss"
   },
@@ -42,8 +43,8 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.3",
-    "delay": "^4.1.0",
-    "mocha": "^6.0.2",
+    "delay": "^4.3.0",
+    "mocha": "^6.1.4",
     "nyc": "^13.3.0",
     "sinon": "^7.2.7",
     "sinon-chai": "^3.3.0",

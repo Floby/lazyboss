@@ -13,7 +13,7 @@ describeWithApi((api, usecases) => {
     }
     const payload = clone(expectedCreationCommand)
     const expectedUuid = uuid()
-    const expectedJob = { id: expectedUuid }
+    const expectedJob = { id: expectedUuid, some: 'other stuff' }
     beforeEach(() => {
       usecases.createJob = sinon.stub().resolves()
     })
@@ -32,7 +32,11 @@ describeWithApi((api, usecases) => {
         .expect(202)
     })
     it('replies a location header to get the created job', async () => {
-      // Given
+      // When
+      await api().post('/jobs').send(payload)
+        .expect(expectedJob)
+    })
+    it('replies the created job as payload', async () => {
       // When
       await api().post('/jobs').send(payload)
         .expect('Location', `/jobs/${expectedUuid}`)
