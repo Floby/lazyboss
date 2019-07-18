@@ -9,8 +9,10 @@ exports.createTestServer = async function createTestServer () {
   }))
   const { usecases } = createContainer(config)
   const server = await createServer(config, usecases)
-  const api = () => supertest('http://localhost:1998')
+  const url = 'http://localhost:1998'
+  const api = () => supertest(url)
   server.api = api
+  server.url = url
   return server
 }
 
