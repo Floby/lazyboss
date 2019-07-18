@@ -11,14 +11,18 @@ function AskForAttempt (jobsRepository, assignmentService, jobAnnouncer, timeout
     const vacancy = Vacancy.forWorker(workerCredentials)
     let attempt
     attempt = await attemptNextJob()
-    if (!attempt) {
-      const timeoutReject = rejectAfterTimeout(timeout, NoJobForWorkerError, workerCredentials)
+    if (attempt) {
+      return attempt
+    }
+    const timeoutReject = delay.reject(timeout, { value: new NoJobForWorkerError(workerCredentials) })
+    while (!attempt) {
       await Promise.race([
         timeoutReject,
         jobAnnouncer.awaitJobs()
       ])
       attempt = await attemptNextJob()
     }
+    timeoutReject.clear()
     return attempt
 
     async function attemptNextJob() {
@@ -31,9 +35,3 @@ function AskForAttempt (jobsRepository, assignmentService, jobAnnouncer, timeout
     }
   }
 }
-
-async function rejectAfterTimeout (ms, ErrorType, ...errorArgs) {
-  await delay(ms)
-  throw new ErrorType(...errorArgs)
-}
-

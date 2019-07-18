@@ -1,4 +1,5 @@
 const uuid = require('uuid/v4')
+const delay = require('delay')
 const { expect, sinon, matchUuid } = require('./utils')
 const AskForAttempt = require('../src/usecases/ask-for-attempt.usecase')
 const { NoJobForWorkerError } = require('../src/domain/errors')
@@ -80,13 +81,13 @@ describe('USECASE AskForAttempt(JobsRepository, AssignmentService, JobAnnouncer,
       })
     })
     context('When no job is pending', () => {
-      it('observes the next pending job', async () => {
+      it('observes the next pending jobs', async () => {
         // Given
-        jobAnnouncerStub.awaitJobs = sinon.stub().resolves()
+        jobAnnouncerStub.awaitJobs = sinon.stub().callsFake(() => delay(50))
         // When
-        await askForAttempt(workerCredentials)
+        await askForAttempt(workerCredentials).catch(() => true)
         // Then
-        expect(jobAnnouncerStub.awaitJobs).to.have.been.calledOnce
+        expect(jobAnnouncerStub.awaitJobs).to.have.been.called
       })
       context('and jobs become pending', () => {
         const expectedAttempt = {
