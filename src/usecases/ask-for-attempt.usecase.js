@@ -6,26 +6,29 @@ const Vacancy = require('../domain/vacancy')
 
 module.exports = AskForAttempt
 
-function AskForAttempt (jobsRepository, attemptsRepository, vacanciesRepositoryStub, timeout) {
+function AskForAttempt (jobsRepository, assignmentService, jobAnnouncer, timeout) {
   return async function (workerCredentials) {
-    let jobToAttempt
     const vacancy = Vacancy.forWorker(workerCredentials)
-    await vacanciesRepositoryStub.save(vacancy)
-    const previsouslyPendingJobs = await jobsRepository.listPending()
-    if (previsouslyPendingJobs.length) {
-      [ jobToAttempt ] = previsouslyPendingJobs
-    } else {
-      jobToAttempt = await Promise.race([
-        jobsRepository.observePending(),
-        rejectAfterTimeout(timeout, NoJobForWorkerError, workerCredentials)
+    let attempt
+    attempt = await attemptNextJob()
+    if (!attempt) {
+      const timeoutReject = rejectAfterTimeout(timeout, NoJobForWorkerError, workerCredentials)
+      await Promise.race([
+        timeoutReject,
+        jobAnnouncer.awaitJobs()
       ])
+      attempt = await attemptNextJob()
     }
-    const attempt = jobToAttempt.assign(workerCredentials)
-    await Promise.all([
-      attemptsRepository.save(attempt),
-      jobsRepository.save(jobToAttempt)
-    ])
     return attempt
+
+    async function attemptNextJob() {
+      const [ job ] = await jobsRepository.listPending()
+      if (job) {
+        const attempt = await assignmentService.assignVacancyToJob(vacancy, job)
+        await jobsRepository.save(job)
+        return attempt
+      }
+    }
   }
 }
 

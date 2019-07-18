@@ -6,9 +6,9 @@ const Job = require('../src/domain/job')
 const Attempt = require('../src/domain/attempt')
 const Vacancy = require('../src/domain/vacancy')
 
-describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', () => {
+describe('USECASE AskForAttempt(JobsRepository, AssignmentService, JobAnnouncer, timeout)', () => {
   const timeout = 200
-  let askForAttempt, jobsRepositoryStub, attemptsRepositoryStub, vacanciesRepositoryStub
+  let askForAttempt, jobsRepositoryStub, assignmentServiceStub, jobAnnouncerStub
   beforeEach(() => {
     jobsRepositoryStub = {
       get: sinon.stub(),
@@ -16,14 +16,14 @@ describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', (
       listPending: sinon.stub().resolves([]),
       observePending: sinon.stub().resolves(never())
     }
-    attemptsRepositoryStub = {
-      save: sinon.stub()
+    assignmentServiceStub = {
+      assignVacancyToJob: sinon.stub().resolves()
     }
-    vacanciesRepositoryStub = {
-      save: sinon.stub()
+    jobAnnouncerStub = {
+      awaitJobs: sinon.stub(() => new Promise(() => null))
     }
     sinon.stub(Vacancy, 'forWorker')
-    askForAttempt = AskForAttempt(jobsRepositoryStub, attemptsRepositoryStub, vacanciesRepositoryStub, timeout)
+    askForAttempt = AskForAttempt(jobsRepositoryStub, assignmentServiceStub, jobAnnouncerStub, timeout)
   })
   afterEach(() => {
     Vacancy.forWorker.restore()
@@ -33,25 +33,15 @@ describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', (
     const worker = {
       id: workerCredentials.id
     }
+    let createdAttempt
     let job
     beforeEach(() => {
       job = new Job({
         type: 'some-processing',
         paramters: { some: 'data' }
       })
-      sinon.spy(job, 'assign')
-    })
-    it('saves a new vacancy for that worker', async () => {
-      // Given
-      const expectedVacancy = { some: 'vacancy' }
-      Vacancy.forWorker.returns(expectedVacancy)
-      // When
-     const actual = await askForAttempt(workerCredentials)
-        .catch((e) => e)
-      // Then
-      expect(actual).to.match(/nothing to do/i)
-      expect(vacanciesRepositoryStub.save).to.have.been.calledOnce
-      expect(vacanciesRepositoryStub.save).to.have.been.calledWith(expectedVacancy)
+      createdAttempt = Attempt({ worker, job })
+      assignmentServiceStub.assignVacancyToJob.resolves(createdAttempt)
     })
     context('When at least one job is pending', () => {
       let firstPendingJob, secondPendingJob
@@ -60,77 +50,84 @@ describe('USECASE AskForAttempt(JobsRepository, AttemptsRepository, timeout)', (
         secondPendingJob = new Job({})
         jobsRepositoryStub.listPending.resolves([firstPendingJob, secondPendingJob])
       })
-      it('assigns the worker to the first pending job', async () => {
+      it('lists pending jobs', async () => {
         // When
         await askForAttempt(workerCredentials)
         // Then
-        expect(firstPendingJob.assign).to.have.been.calledOnce
-        expect(firstPendingJob.assign).to.have.been.calledWith(workerCredentials)
+        expect(jobsRepositoryStub.listPending).to.have.been.calledOnce
       })
-      it('stores a new attempt assigned to the worker', async () => {
+      it('assigns the worker\'s vacancy to the first pending job', async () => {
+        // Given
+        const vacancy = { some: 'vacancy' }
+        Vacancy.forWorker.withArgs(workerCredentials).returns(vacancy)
         // When
         await askForAttempt(workerCredentials)
         // Then
-        const expectedAttempt = firstPendingJob.assign.firstCall.returnValue
-        expect(attemptsRepositoryStub.save).to.have.been.calledWith(expectedAttempt)
+        expect(assignmentServiceStub.assignVacancyToJob).to.have.been.calledWith(vacancy, job)
       })
-      it('resolves the saved attempt', async () => {
+      it('resolves the created attempt', async () => {
         // When
         const actual = await askForAttempt(workerCredentials)
         // Then
-        const savedAttempt = attemptsRepositoryStub.save.firstCall.args[0]
-        expect(actual).to.deep.equal(savedAttempt)
+        expect(actual).to.deep.equal(createdAttempt)
       })
       it('saves the updated job', async () => {
         // When
         await askForAttempt(workerCredentials)
         // Then
+        expect(jobsRepositoryStub.save).to.have.been.calledAfter(assignmentServiceStub.assignVacancyToJob)
         expect(jobsRepositoryStub.save).to.have.been.calledWith(job)
       })
     })
     context('When no job is pending', () => {
       it('observes the next pending job', async () => {
         // Given
-        jobsRepositoryStub.observePending.resolves(job)
+        jobAnnouncerStub.awaitJobs = sinon.stub().resolves()
         // When
         await askForAttempt(workerCredentials)
         // Then
-        expect(jobsRepositoryStub.observePending).to.have.been.calledOnce
+        expect(jobAnnouncerStub.awaitJobs).to.have.been.calledOnce
       })
-      context('and a jobs becomes pending', () => {
+      context('and jobs become pending', () => {
         const expectedAttempt = {
           id: matchUuid(),
           worker,
           job
         }
         beforeEach(() => {
-          jobsRepositoryStub.observePending.resolves(job)
+          jobAnnouncerStub.awaitJobs = sinon.stub().resolves()
+          jobsRepositoryStub.listPending.onSecondCall().resolves([job])
         })
-        it('assigns the worker to the job', async () => {
+        it('lists pending jobs again', async () => {
           // When
           await askForAttempt(workerCredentials)
           // Then
-          expect(job.assign).to.have.been.calledWith(worker)
-          expect(job.assign).to.have.been.calledOnce
+          expect(jobsRepositoryStub.listPending).to.have.been.calledTwice
+          expect(jobsRepositoryStub.listPending)
+            .to.have.been.calledBefore(jobAnnouncerStub.awaitJobs)
+          expect(jobsRepositoryStub.listPending)
+            .to.have.been.calledAfter(jobAnnouncerStub.awaitJobs)
         })
-        it('stores a new attempt assigned to the worker', async () => {
+        it('assigns the worker\'s vacancy to the first pending job', async () => {
+          // Given
+          const vacancy = { some: 'vacancy' }
+          Vacancy.forWorker.withArgs(workerCredentials).returns(vacancy)
           // When
           await askForAttempt(workerCredentials)
           // Then
-          const expectedAttempt = job.assign.firstCall.returnValue
-          expect(attemptsRepositoryStub.save).to.have.been.calledWith(expectedAttempt)
+          expect(assignmentServiceStub.assignVacancyToJob).to.have.been.calledWith(vacancy, job)
         })
-        it('resolves the saved attempt', async () => {
+        it('resolves the created attempt', async () => {
           // When
           const actual = await askForAttempt(workerCredentials)
           // Then
-          const savedAttempt = attemptsRepositoryStub.save.firstCall.args[0]
-          expect(actual).to.deep.equal(savedAttempt)
+          expect(actual).to.deep.equal(createdAttempt)
         })
         it('saves the updated job', async () => {
           // When
           await askForAttempt(workerCredentials)
           // Then
+          expect(jobsRepositoryStub.save).to.have.been.calledAfter(assignmentServiceStub.assignVacancyToJob)
           expect(jobsRepositoryStub.save).to.have.been.calledWith(job)
         })
       })

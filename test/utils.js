@@ -2,6 +2,7 @@ const shortid = require('shortid')
 const supertest = require('supertest')
 const { createServer } = require('../')
 require('chai').use(require('sinon-chai'))
+require('chai').use(require('chai-exclude'))
 require('chai').use(require('chai-as-promised'))
 const { expect } = require('chai')
 const sinon = require('sinon')
@@ -55,4 +56,12 @@ exports.matchJSON = (expected) => {
   return sinon.match((actual) => {
     expect(actual.toJSON()).to.deep.equal(expected)
   })
+}
+
+exports.trap = function () {
+  const trap = { value: () => { throw Error('not captured') } }
+  trap.capture = sinon.match((value) => {
+    trap.value = () => value
+  })
+  return trap
 }

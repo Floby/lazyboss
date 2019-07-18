@@ -1,9 +1,10 @@
+const { requiredArg } = require('../helpers')
 const clone = require('clone-deep')
 const shortid = require('shortid')
 
 module.exports = Attempt
 
-function Attempt ({ id, worker, job, result=null }) {
+function Attempt ({ id, worker, job=requiredArg('job'), result=null }) {
   if (!(this instanceof Attempt)) return new Attempt(...arguments)
   id = id || shortid()
   this.toJSON = () => ({
