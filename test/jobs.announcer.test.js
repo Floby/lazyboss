@@ -5,7 +5,7 @@ const JobAnnouncer = require('../src/infra/job.announcer')
 describe('JobAnnouncer()', () => {
   let jobAnnouncer
   beforeEach(() => {
-    jobAnnouncer = new JobAnnouncer()
+    jobAnnouncer = JobAnnouncer()
   })
 
   describe('.awaitJobs()', () => {

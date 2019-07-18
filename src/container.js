@@ -25,7 +25,7 @@ function Container (config) {
   repositories.jobAnnouncer = JobAnnouncer()
   services.assignmentService = AssignmentService(repositories.attemptsRepository, repositories.assignmentsRepository)
   usecases.getJob = GetJob(repositories.jobsRepository)
-  usecases.createJob = CreateJob(repositories.jobsRepository)
+  usecases.createJob = CreateJob(repositories.jobsRepository, repositories.jobAnnouncer)
   usecases.askForAttempt = AskForAttempt(repositories.jobsRepository, services.assignmentService, repositories.jobAnnouncer, pollingTimeout)
   usecases.completeAttempt = CompleteAttempt(repositories.jobsRepository, repositories.attemptsRepository)
 

@@ -8,7 +8,10 @@ describe('USECASE CreateJob(JobsRepository)', () => {
     jobsRepositoryStub = {
       get: sinon.stub(), save: sinon.stub()
     }
-    createJob = CreateJob(jobsRepositoryStub)
+    jobAnnouncerStub = {
+      announceJobs: sinon.stub()
+    }
+    createJob = CreateJob(jobsRepositoryStub, jobAnnouncerStub)
   })
   describe('(jobCreationCommand)', () => {
     const jobCreationCommand = {
@@ -28,6 +31,12 @@ describe('USECASE CreateJob(JobsRepository)', () => {
         parameters: jobCreationCommand.parameters
       })
       expect(savedJob.toJSON()).to.have.property('id').to.match(matchUuid.regex)
+    })
+    it('announces jobs', async () => {
+      // When
+      await createJob(jobCreationCommand)
+      // Then
+      expect(jobAnnouncerStub.announceJobs).to.have.been.calledOnce
     })
     it('resolves with the created job', async () => {
       // When

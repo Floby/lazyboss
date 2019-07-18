@@ -22,6 +22,7 @@ describe('With one API running', () => {
         .set('Authorization', `Plain ${querystring.encode(workerCredentials)}`)
         .expect(201)
         .expect(attemptLocationTrap)
+        .then((res) => res)
     })
 
     context('And a job is created', () => {
