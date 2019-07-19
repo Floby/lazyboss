@@ -10,7 +10,7 @@ describe('USECASE CompleteAttempt(jobsRepository, attemptsRepository)', () => {
   const result = { some: { resulting: 'value' } }
   const worker = { id: 'some-worker' }
   let job, attempt, jobId, attemptId
-  let completeAttempt, jobsRepositoryStub, attemptsRepositoryStub
+  let completeAttempt, jobsRepositoryStub, attemptsRepositoryStub, assignmentsRepositoryStub
   beforeEach(() => {
     job = Job({})
     attempt = job.assign(worker)
@@ -29,7 +29,10 @@ describe('USECASE CompleteAttempt(jobsRepository, attemptsRepository)', () => {
       get: sinon.stub().resolves(attempt),
       save: sinon.stub()
     }
-    completeAttempt = CompleteAttempt(jobsRepositoryStub, attemptsRepositoryStub)
+    assignmentsRepositoryStub = {
+      unset: sinon.stub().resolves()
+    }
+    completeAttempt = CompleteAttempt(jobsRepositoryStub, attemptsRepositoryStub, assignmentsRepositoryStub)
   })
   describe('(jobId, attemptId, worker, result)', () => {
     it('finds the corresponding attempt', async () => {
@@ -59,6 +62,12 @@ describe('USECASE CompleteAttempt(jobsRepository, attemptsRepository)', () => {
       // Then
       expect(jobsRepositoryStub.save).to.have.been.calledWith(job)
       expect(jobsRepositoryStub.save).to.have.been.calledAfter(attempt.finish)
+    })
+    it('removes the assignment', async () => {
+      // Whe
+      await completeAttempt(jobId, attemptId, worker, result)
+      // Then
+      expect(assignmentsRepositoryStub.unset).to.have.been.calledWith({ jobId, attemptId })
     })
 
     context('When the worker is different from the one assigned', () => {

@@ -1,7 +1,7 @@
 const { WrongWorkerError, UnknownAttemptError } = require('../domain/errors')
 module.exports = CompleteAttempt
 
-function CompleteAttempt (jobsRepository, attemptsRepository) {
+function CompleteAttempt (jobsRepository, attemptsRepository, assignmentsRepository) {
   return async (jobId, attemptId, worker, result) => {
     const attempt = await attemptsRepository.get(attemptId)
     if (!attempt || attempt.job.id !== jobId) {
@@ -11,7 +11,8 @@ function CompleteAttempt (jobsRepository, attemptsRepository) {
       throw new WrongWorkerError(worker, attempt.worker)
     }
     attempt.finish(result)
-    attemptsRepository.save(attempt)
-    jobsRepository.save(attempt.job)
+    await attemptsRepository.save(attempt)
+    await jobsRepository.save(attempt.job)
+    await assignmentsRepository.unset({ jobId, attemptId })
   }
 }

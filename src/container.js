@@ -27,7 +27,7 @@ function Container (config) {
   usecases.getJob = GetJob(repositories.jobsRepository)
   usecases.createJob = CreateJob(repositories.jobsRepository, repositories.jobAnnouncer)
   usecases.askForAttempt = AskForAttempt(repositories.jobsRepository, services.assignmentService, repositories.jobAnnouncer, pollingTimeout)
-  usecases.completeAttempt = CompleteAttempt(repositories.jobsRepository, repositories.attemptsRepository)
+  usecases.completeAttempt = CompleteAttempt(repositories.jobsRepository, repositories.attemptsRepository, repositories.assignmentsRepository)
 
   return { repositories, usecases }
 }
