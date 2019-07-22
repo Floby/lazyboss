@@ -81,5 +81,41 @@ describe('DOMAIN', () => {
         })
       })
     })
+    describe('.fail(reason)', () => {
+      const worker = { id: 'worker' }
+      const reason = { my: 'reason' }
+      beforeEach(() => {
+        job.assign(worker)
+      })
+      it('changes its status to "failed"', () => {
+        // When
+        job.fail(reason)
+        // Then
+        expect(job.status).to.equal('failed')
+      })
+      it('copies the reason of the failure', () => {
+        // When
+        job.fail(reason)
+        // Then
+        expect(job.failure).to.deep.equal(reason)
+        expect(job.failure).not.to.equal(reason)
+      })
+      context('if status was "done"', () => {
+        beforeEach(() => {
+          job = Job({ status: 'done' })
+        })
+        it('throw a JobLifeCycleError', () => {
+          expect(() => job.fail(reason)).to.throw(JobLifeCycleError)
+        })
+      })
+      context('if status was "pending"', () => {
+        beforeEach(() => {
+          job = Job({ status: 'pending' })
+        })
+        it('throw a JobLifeCycleError', () => {
+          expect(() => job.fail(reason)).to.throw(JobLifeCycleError)
+        })
+      })
+    })
   })
 })

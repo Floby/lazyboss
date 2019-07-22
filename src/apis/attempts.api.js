@@ -1,4 +1,4 @@
-const { UnknownAttemptError, WrongWorkerError, NoJobForWorkerError, JobLifeCycleError } = require('../domain/errors')
+const { UnknownAttemptError, WrongWorkerError, NoJobForWorkerError, AttemptAlreadyFinishedError } = require('../domain/errors')
 const Boom = require('boom')
 const querystring = require('querystring')
 
@@ -41,7 +41,7 @@ function routes (usecases) {
         if (error instanceof UnknownAttemptError) {
           return Boom.notFound(error.message)
         }
-        if (error instanceof JobLifeCycleError) {
+        if (error instanceof AttemptAlreadyFinishedError) {
           return Boom.conflict(error.message)
         }
         if (error instanceof WrongWorkerError) {
@@ -49,6 +49,29 @@ function routes (usecases) {
         }
         throw error
       }
+    }
+  }, {
+    method: 'PUT',
+    path: '/jobs/{jobId}/attempts/{attemptId}/failure',
+    handler: async (request, h) => {
+      const { jobId, attemptId } = request.params
+      const reason = request.payload
+      try {
+      const workerCredentials = getWorkerCredentials(request)
+      await usecases.failAttempt(jobId, attemptId, workerCredentials, reason)
+      } catch (error) {
+        if (error instanceof UnknownAttemptError) {
+          return Boom.notFound(error.message)
+        }
+        if (error instanceof AttemptAlreadyFinishedError) {
+          return Boom.conflict(error.message)
+        }
+        if (error instanceof WrongWorkerError) {
+          return Boom.forbidden(error.message)
+        }
+        throw error
+      }
+      return h.response().code(201)
     }
   }]
 }

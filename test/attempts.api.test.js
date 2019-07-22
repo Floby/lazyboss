@@ -5,7 +5,7 @@ const shortid = require('shortid')
 const Attempt = require('../src/domain/attempt')
 const Job = require('../src/domain/job')
 const { expect, describeWithApi, sinon } = require('./utils')
-const { UnknownAttemptError, WrongWorkerError, NoJobForWorkerError, JobLifeCycleError } = require('../src/domain/errors')
+const { UnknownAttemptError, WrongWorkerError, NoJobForWorkerError, AttemptAlreadyFinishedError } = require('../src/domain/errors')
 
 describeWithApi((api, usecases) => {
   const workerId = 'some-worker-id-' + shortid()
@@ -21,8 +21,6 @@ describeWithApi((api, usecases) => {
     })
     beforeEach(() => {
       usecases.askForAttempt = sinon.stub().resolves()
-    })
-    beforeEach(() => {
       usecases.askForAttempt.resolves(expectedAttempt)
     })
     it('replies 201', () => {
@@ -83,7 +81,7 @@ describeWithApi((api, usecases) => {
     const jobId = uuid()
     const attemptId = shortid()
     const result = { some: { processing: 'result' } }
-    beforeEach(() =>{
+    beforeEach(() => {
       usecases.completeAttempt = sinon.stub().resolves()
     })
     it('replies 201', () => {
@@ -107,8 +105,8 @@ describeWithApi((api, usecases) => {
           .expect(404)
       })
     })
-    context('when usecases rejects with JobLifeCycleError', () => {
-      beforeEach(() => usecases.completeAttempt.rejects(new JobLifeCycleError('', '')))
+    context('when usecases rejects with AttemptAlreadyFinishedError', () => {
+      beforeEach(() => usecases.completeAttempt.rejects(new AttemptAlreadyFinishedError('', '')))
       it('replies with a 409', async () => {
         await api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
           .set('Authorization', plainAuthorizationHeader)
@@ -139,6 +137,70 @@ describeWithApi((api, usecases) => {
         return api().put(`/jobs/${jobId}/attempts/${attemptId}/result`)
           .set('Authorization', otherWorkerCredentials)
           .send(result)
+          .expect(403)
+      })
+    })
+  })
+  describe('PUT /jobs/{jobId}/attempts/{attemptId}/failure', () => {
+    const jobId = uuid()
+    const attemptId = shortid()
+    const reason = { some: { reason: 'explanation' } }
+    beforeEach(() => {
+      usecases.failAttempt = sinon.stub().resolves()
+    })
+    it('replies 201', () => {
+      return api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+        .set('Authorization', plainAuthorizationHeader)
+        .send(reason)
+        .expect(201)
+    })
+    it('calls usecase failAttempt()', async () => {
+      await api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+        .set('Authorization', plainAuthorizationHeader)
+        .send(reason)
+      expect(usecases.failAttempt).to.have.been.calledWith(jobId, attemptId, expectedWorkerCredentials, reason)
+    })
+    context('with unknown attempt', () => {
+      beforeEach(() => usecases.failAttempt.rejects(new UnknownAttemptError(attemptId)))
+      it('replies with a 404', async () => {
+        await api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+          .set('Authorization', plainAuthorizationHeader)
+          .send(reason)
+          .expect(404)
+      })
+    })
+    context('when usecases rejects with AttemptAlreadyFinishedError', () => {
+      beforeEach(() => usecases.failAttempt.rejects(new AttemptAlreadyFinishedError('', '')))
+      it('replies with a 409', async () => {
+        await api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+          .set('Authorization', plainAuthorizationHeader)
+          .send(reason)
+          .expect(409)
+      })
+    })
+    context('when usecases rejects with a general error', () => {
+      beforeEach(() => usecases.failAttempt.rejects(new Error('hey')))
+      it('replies with a 500', async () => {
+        await api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+          .set('Authorization', plainAuthorizationHeader)
+          .send(reason)
+          .expect(500)
+      })
+    })
+    context('When using no credentials for worker', () => {
+      it('replies 401', () => {
+        return api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+          .send(reason)
+          .expect(401)
+      })
+    })
+    context('when using credentials for another worker', () => {
+      const otherWorkerCredentials = `Plain id=some-other-worker`
+      beforeEach(() => usecases.failAttempt.rejects(new WrongWorkerError({ id: 'some-other-worker' }, expectedWorkerCredentials)))
+      it('replies 403', () => {
+        return api().put(`/jobs/${jobId}/attempts/${attemptId}/failure`)
+          .set('Authorization', otherWorkerCredentials)
+          .send(reason)
           .expect(403)
       })
     })

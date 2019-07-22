@@ -30,7 +30,7 @@ describe('AssignmentService(attemptsRepository, assignmentsRepository)', () => {
       expect(actual.toJSON()).excluding('id').to.deep.equal({
         worker: vacancy.worker,
         job: job.toJSON(),
-        result: null
+        result: null, failure: null
       })
     })
     it('assigns the worker to the job', async () => {

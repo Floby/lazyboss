@@ -16,6 +16,12 @@ exports.NoJobForWorkerError = class NoJobForWorkerError extends Error {
   }
 }
 
+exports.AttemptAlreadyFinishedError = class AttemptAlreadyFinishedError extends Error {
+  constructor(completionType) {
+    super(`Attempt already has a ${completionType}`)
+  }
+}
+
 exports.JobLifeCycleError = class JobLifeCycleError extends Error {
   constructor(previousStatus, triedTransition) {
     super(`Job cannot become "${triedTransition}" when it is "${previousStatus}"`)
