@@ -7,7 +7,7 @@ Lazyboss
 
 > A Job Scheduler which delegates to faceless workers
 
-Lazyboss is a job server. It allows worker to connect to it and claim jobs to run.
+Lazyboss is a job server. It allows worker to connect to it and apply for jobs to run.
 Lazyboss doesn't do any actual work but only delegates to the workers it thinks
 are best suited. It keeps track of what/when/to whom jobs are delegated and interveines if they
 take too long. If you're lazyboss's supervisor, you can dictate how it treats its workers.
@@ -25,6 +25,24 @@ Run
 ---
 
     $ DATABASE_URL=<your db> lazyboss
+
+WIP
+---
+
+This is a work in progress, here is the roadmap :
+
+- [x] Create Job
+- [x] Get Job information
+- [x] Ask to attempt a job
+- [x] Successfully end job
+- [ ] Fail a job
+- [ ] Automatically retry a job
+- [ ] Report progress
+- [ ] Follow progress
+- [ ] Match worker & job by type
+- [ ] Match worker & job by skill
+- [ ] Create a project
+- [ ] Follow project
 
 Usage
 -----

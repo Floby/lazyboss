@@ -26,7 +26,7 @@ A **Worker** is an external process which has access to the API and can fulfill 
 
   - An identification
   - Credentials to prove its identification
-  - **Abilities** which can satisfy the **Constraints** of a **Job**
+  - **Skills** which can satisfy the **Constraints** of a **Job**
 
 ### Vacancy
 
@@ -35,7 +35,7 @@ is typically short-lived to a maximum of a few tens of seconds
 
 ### Attempt
 
-When a **Vacancy** of a **Worker** whose **Abilities** satisfy and a pending **Job**'s **Constraints**, then
+When a **Vacancy** of a **Worker** whose **Skills** satisfy and a pending **Job**'s **Constraints**, then
 an **Attempt** at this **Job** is created. An **Attempt** is home to information such as:
 
   - The time it has started
@@ -57,6 +57,10 @@ An outcome destroys the **Assignment** for the given **Attempt**
 ### Retry
 
 When an attempt has failed and the **Job** information allows it, the **Job** can become pending again.
+
+### Project
+
+A **Project** is a set of independents jobs
 
 Timelines
 ---------
