@@ -9,6 +9,7 @@ const AskForAttempt = require('./usecases/ask-for-attempt.usecase')
 const CreateJob = require('./usecases/create-job.usecase')
 const GetJob = require('./usecases/get-job.usecase')
 const CompleteAttempt = require('./usecases/complete-attempt.usecase')
+const FailAttempt = require('./usecases/fail-attempt.usecase')
 
 module.exports = Container
 
@@ -28,6 +29,7 @@ function Container (config) {
   usecases.createJob = CreateJob(repositories.jobsRepository, repositories.jobAnnouncer)
   usecases.askForAttempt = AskForAttempt(repositories.jobsRepository, services.assignmentService, repositories.jobAnnouncer, pollingTimeout)
   usecases.completeAttempt = CompleteAttempt(repositories.jobsRepository, repositories.attemptsRepository, repositories.assignmentsRepository)
+  usecases.failAttempt = FailAttempt(repositories.jobsRepository, repositories.attemptsRepository, repositories.assignmentsRepository)
 
   return { repositories, usecases }
 }

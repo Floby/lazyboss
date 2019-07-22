@@ -35,7 +35,7 @@ This is a work in progress, here is the roadmap :
 - [x] Get Job information
 - [x] Ask to attempt a job
 - [x] Successfully end job
-- [ ] Fail a job
+- [x] Fail a job
 - [ ] Automatically retry a job
 - [ ] Report progress
 - [ ] Follow progress

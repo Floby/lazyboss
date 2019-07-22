@@ -50,6 +50,21 @@ describe('With one API running', () => {
           .expect((res) => expect(res.body).to.have.property('status').equal('done'))
           .expect((res) => expect(res.body).to.have.property('result').deep.equal(expectedResult))
       })
+      it('fails the job', async () => {
+        const expectedReason = {
+          message: 'oooooooops'
+        }
+        const executor = async () => {
+          await delay(200)
+          throw Error(expectedReason.message)
+        }
+        await worker.apply(executor)
+
+        await server.api()
+          .get(jobLocationTrap.value())
+          .expect((res) => expect(res.body).to.have.property('status').equal('failed'))
+          .expect((res) => expect(res.body).to.have.property('failure').deep.equal(expectedReason))
+      })
     })
   })
 })

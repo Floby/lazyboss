@@ -16,7 +16,19 @@ function BusyWorker ({ id, boss }) {
   this.apply = async (executor) => {
     const { headers, body: attempt } = await client.post('/jobs/attempt')
     const resultLocation = headers.location + '/result'
-    const result = await executor()
-    await client.put(resultLocation, { body: result })
+    const failureLocation = headers.location + '/failure'
+    try {
+      const result = await executor()
+      await client.put(resultLocation, { body: result })
+    } catch (error) {
+      const reason = serializeError(error)
+      await client.put(failureLocation, { body: reason })
+    }
+  }
+}
+
+function serializeError (error) {
+  return {
+    message: error.message
   }
 }

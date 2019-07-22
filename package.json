@@ -9,6 +9,7 @@
   "scripts": {
     "test": "nyc mocha test --recursive",
     "test:int": "nyc mocha int.test --recursive",
+    "test:all": "nyc mocha test int.test --recursive",
     "coveralls": "cat coverage/lcov.info | coveralls",
     "start": "./bin/lazyboss"
   },
