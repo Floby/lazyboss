@@ -56,7 +56,7 @@
     "boom": "^7.3.0",
     "clone-deep": "^4.0.1",
     "envie": "^1.5.0",
-    "got": "^9.6.0",
+    "got": "^11.8.5",
     "hapi": "^18.1.0",
     "joi": "^14.3.1",
     "joi-duration-extensions": "^1.0.1",
