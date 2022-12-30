@@ -46,7 +46,7 @@
     "chai-exclude": "^2.0.2",
     "coveralls": "^3.0.3",
     "delay": "^4.3.0",
-    "mocha": "^6.1.4",
+    "mocha": "^10.2.0",
     "nyc": "^14.1.1",
     "sinon": "^7.2.7",
     "sinon-chai": "^3.3.0",
